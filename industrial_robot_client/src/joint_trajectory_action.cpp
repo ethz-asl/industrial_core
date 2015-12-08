@@ -42,20 +42,28 @@ const double JointTrajectoryAction::WATCHDOG_PERIOD_ = 1.0;
 const double JointTrajectoryAction::DEFAULT_GOAL_THRESHOLD_ = 0.01;
 
 JointTrajectoryAction::JointTrajectoryAction() :
-    action_server_(node_, "joint_trajectory_action", boost::bind(&JointTrajectoryAction::goalCB, this, _1), boost::bind(&JointTrajectoryAction::cancelCB, this, _1), false), has_active_goal_(false), controller_alive_(false) {
+    action_server_(node_, "joint_trajectory_action", 
+                   boost::bind(&JointTrajectoryAction::goalCB, this, _1), 
+                   boost::bind(&JointTrajectoryAction::cancelCB, this, _1), false), 
+    has_active_goal_(false), controller_alive_(false) {
       ros::NodeHandle pn("~");
       pn.param("constraints/goal_threshold", goal_threshold_, DEFAULT_GOAL_THRESHOLD_);
-      if (!industrial_utils::param::getJointNames("controller_joint_names", "robot_description", joint_names_))
+      if (!industrial_utils::param::getJointNames("controller_joint_names", 
+                                                  "robot_description", joint_names_))
         ROS_ERROR("Failed to initialize joint_names.");
-      // The controller joint names parameter includes empty joint names for those joints not supported
-      // by the controller.  These are removed since the trajectory action should ignore these.
+      // The controller joint names parameter includes empty joint names for those joints 
+      // not supported by the controller.  These are removed since the trajectory action 
+      // should ignore these.
       std::remove(joint_names_.begin(), joint_names_.end(), std::string());
       ROS_INFO_STREAM("Filtered joint names to " << joint_names_.size() << " joints");
-      pub_trajectory_command_ = node_.advertise<trajectory_msgs::JointTrajectory>("joint_path_command", 1);
-      sub_trajectory_state_ = node_.subscribe("feedback_states", 1, &JointTrajectoryAction::controllerStateCB, this);
-      sub_robot_status_ = node_.subscribe("robot_status", 1, &JointTrajectoryAction::robotStatusCB, this);
-
-      watchdog_timer_ = node_.createTimer(ros::Duration(WATCHDOG_PERIOD_), &JointTrajectoryAction::watchdog, this, true);
+      pub_trajectory_command_ = 
+          node_.advertise<trajectory_msgs::JointTrajectory>("joint_path_command", 1);
+      sub_trajectory_state_ = 
+          node_.subscribe("feedback_states", 1, &JointTrajectoryAction::controllerStateCB, this);
+      sub_robot_status_ = 
+          node_.subscribe("robot_status", 1, &JointTrajectoryAction::robotStatusCB, this);
+      watchdog_timer_ = node_.createTimer(ros::Duration(WATCHDOG_PERIOD_), 
+                                          &JointTrajectoryAction::watchdog, this, true);
       action_server_.start();
     }
 JointTrajectoryAction::~JointTrajectoryAction() {}
@@ -82,8 +90,8 @@ void JointTrajectoryAction::watchdog(const ros::TimerEvent &e)
     }
     else
     {
-      ROS_WARN_STREAM(
-          "Aborting goal because we haven't heard from the controller in " << WATCHDOG_PERIOD_ << " seconds");
+      ROS_WARN_STREAM("Aborting goal because we haven't heard from the controller in " 
+                      << WATCHDOG_PERIOD_ << " seconds");
     }
     abortGoal();
   }
@@ -140,8 +148,8 @@ void JointTrajectoryAction::goalCB(JointTractoryActionServer::GoalHandle & gh)
   }
   if (!gh.getGoal()->goal_tolerance.empty())
   {
-    ROS_WARN_STREAM(
-        "Ignoring goal tolerance in action, using paramater tolerance of " << goal_threshold_ << " instead");
+    ROS_WARN_STREAM("Ignoring goal tolerance in action, using paramater tolerance of " 
+                    << goal_threshold_ << " instead");
   }
   if (!gh.getGoal()->path_tolerance.empty())
   {
@@ -166,7 +174,8 @@ void JointTrajectoryAction::cancelCB(JointTractoryActionServer::GoalHandle & gh)
     ROS_WARN("Active goal and goal cancel do not match, ignoring cancel request");
   }
 }
-void JointTrajectoryAction::controllerStateCB(const control_msgs::FollowJointTrajectoryFeedbackConstPtr &msg)
+void JointTrajectoryAction::controllerStateCB(
+    const control_msgs::FollowJointTrajectoryFeedbackConstPtr &msg)
 {
   ROS_DEBUG("Checking controller state feedback");
   last_trajectory_state_ = msg;
@@ -205,4 +214,3 @@ void JointTrajectoryAction::abortGoal()
 }
 } // joint_trajectory_action
 } // industrial_robot_client
-
