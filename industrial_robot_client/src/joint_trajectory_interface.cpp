@@ -93,8 +93,7 @@ bool JointTrajectoryInterface::init(SmplMsgConnection* connection,
   // try to read velocity limits from URDF, if none specified
   if (joint_vel_limits_.empty() && 
       !industrial_utils::param::getJointVelocityLimits("robot_description", joint_vel_limits_))
-    ROS_WARN("Unable to read velocity limits from 'robot_description' param. 
-             Velocity validation disabled.");
+    ROS_WARN("Unable to read velocity limits from 'robot_description' param. Velocity validation disabled.");
 
   this->srv_stop_motion_ = this->node_.advertiseService("stop_motion", 
                                                         &JointTrajectoryInterface::stopMotionCB, 
@@ -176,11 +175,13 @@ bool JointTrajectoryInterface::select(const std::vector<std::string>& ros_joint_
   for (size_t rbt_idx=0; rbt_idx < rbt_joint_names.size(); ++rbt_idx) {
     bool is_empty = rbt_joint_names[rbt_idx].empty();
     // find matching ROS element
-    size_t ros_idx = std::find(ros_joint_names.begin(), ros_joint_names.end(), rbt_joint_names[rbt_idx]) - ros_joint_names.begin();
+    size_t ros_idx = std::find(ros_joint_names.begin(), ros_joint_names.end(), 
+                               rbt_joint_names[rbt_idx]) - ros_joint_names.begin();
     bool is_found = ros_idx < ros_joint_names.size();
     // error-chk: required robot joint not found in ROS joint-list
     if (!is_empty && !is_found) {
-      ROS_ERROR("Expected joint (%s) not found in JointTrajectory.  Aborting command.", rbt_joint_names[rbt_idx].c_str());
+      ROS_ERROR("Expected joint (%s) not found in JointTrajectory.  Aborting command.", 
+                rbt_joint_names[rbt_idx].c_str());
       return false;
     }
     if (is_empty) {
@@ -189,9 +190,12 @@ bool JointTrajectoryInterface::select(const std::vector<std::string>& ros_joint_
       if (!ros_pt.accelerations.empty()) rbt_pt->accelerations.push_back(-1);
     }
     else {
-      if (!ros_pt.positions.empty()) rbt_pt->positions.push_back(ros_pt.positions[ros_idx]);
-      if (!ros_pt.velocities.empty()) rbt_pt->velocities.push_back(ros_pt.velocities[ros_idx]);
-      if (!ros_pt.accelerations.empty()) rbt_pt->accelerations.push_back(ros_pt.accelerations[ros_idx]);
+      if (!ros_pt.positions.empty()) 
+        rbt_pt->positions.push_back(ros_pt.positions[ros_idx]);
+      if (!ros_pt.velocities.empty()) 
+        rbt_pt->velocities.push_back(ros_pt.velocities[ros_idx]);
+      if (!ros_pt.accelerations.empty()) 
+        rbt_pt->accelerations.push_back(ros_pt.accelerations[ros_idx]);
     }
   }
   return true;
@@ -200,12 +204,13 @@ bool JointTrajectoryInterface::calc_speed(const trajectory_msgs::JointTrajectory
                                           double* rbt_velocity, double* rbt_duration) {
   return calc_duration(pt, rbt_duration);
 }
-// default velocity calculation computes the %-of-max-velocity for the "critical joint" (closest to velocity-limit)
-// such that 0.2 = 20% of maximum joint speed.
+// default velocity calculation computes the %-of-max-velocity for the "critical joint" 
+// (closest to velocity-limit) such that 0.2 = 20% of maximum joint speed.
 //
-// NOTE: this calculation uses the maximum joint speeds from the URDF file, which may differ from those defined on
-// the physical robot.  These differences could lead to different actual movement velocities than intended.
-// Behavior should be verified on a physical robot if movement velocity is critical.
+// NOTE: this calculation uses the maximum joint speeds from the URDF file, which may differ 
+// from those defined on the physical robot.  These differences could lead to different actual 
+// movement velocities than intended. Behavior should be verified on a physical robot if movement 
+// velocity is critical.
 bool JointTrajectoryInterface::calc_velocity(const trajectory_msgs::JointTrajectoryPoint& pt, 
                                              double* rbt_velocity) {
   std::vector<double> vel_ratios;
@@ -223,8 +228,8 @@ bool JointTrajectoryInterface::calc_velocity(const trajectory_msgs::JointTraject
       vel_ratios.push_back(-1);
     else if (joint_vel_limits_.count(jnt_name) == 0)  // no velocity limit specified for this joint
       vel_ratios.push_back(-1);
-    else
-      vel_ratios.push_back( fabs(pt.velocities[i] / joint_vel_limits_[jnt_name]) );  // calculate expected duration for this joint
+    else // calculate expected duration for this joint
+      vel_ratios.push_back( fabs(pt.velocities[i] / joint_vel_limits_[jnt_name]) );  
   }
   // find largest velocity-ratio (closest to max joint-speed)
   int max_idx = std::max_element(vel_ratios.begin(), vel_ratios.end()) - vel_ratios.begin();
@@ -300,8 +305,9 @@ bool JointTrajectoryInterface::is_valid(const trajectory_msgs::JointTrajectory &
       if (max_vel == joint_vel_limits_.end()) continue; // no velocity-checking if limit not defined
 
       if (std::abs(pt.velocities[j]) > max_vel->second)
-        ROS_ERROR_RETURN(false, "Validation failed: Max velocity exceeded for trajectory pt %d, 
-                         joint '%s'", i, traj.joint_names[j].c_str());
+        ROS_ERROR_RETURN(false, 
+                         "Validation failed: Max velocity exceeded for trajectory pt %d, joint '%s'", 
+                         i, traj.joint_names[j].c_str());
     }
     // check for valid timestamp
     if ((i > 0) && (pt.time_from_start.toSec() == 0))
