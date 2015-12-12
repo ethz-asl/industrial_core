@@ -67,10 +67,12 @@ JointTrajectoryAction::JointTrajectoryAction() :
       action_server_.start();
     }
 JointTrajectoryAction::~JointTrajectoryAction() {}
+
 void JointTrajectoryAction::robotStatusCB(const industrial_msgs::RobotStatusConstPtr &msg)
 {
   last_robot_status_ = msg; //caching robot status for later use.
 }
+
 void JointTrajectoryAction::watchdog(const ros::TimerEvent &e)
 {
   // Some debug logging
@@ -96,6 +98,7 @@ void JointTrajectoryAction::watchdog(const ros::TimerEvent &e)
     abortGoal();
   }
 }
+
 void JointTrajectoryAction::goalCB(JointTractoryActionServer::GoalHandle & gh)
 {
   ROS_INFO("Received new goal");
@@ -156,6 +159,7 @@ void JointTrajectoryAction::goalCB(JointTractoryActionServer::GoalHandle & gh)
     ROS_WARN_STREAM("Ignoring goal path tolerance, option not supported by ROS-Industrial drivers");
   }
 }
+
 void JointTrajectoryAction::cancelCB(JointTractoryActionServer::GoalHandle & gh)
 {
   ROS_DEBUG("Received action cancel request");
@@ -174,6 +178,7 @@ void JointTrajectoryAction::cancelCB(JointTractoryActionServer::GoalHandle & gh)
     ROS_WARN("Active goal and goal cancel do not match, ignoring cancel request");
   }
 }
+
 void JointTrajectoryAction::controllerStateCB(
     const control_msgs::FollowJointTrajectoryFeedbackConstPtr &msg)
 {
@@ -203,6 +208,7 @@ void JointTrajectoryAction::controllerStateCB(
   active_goal_.setSucceeded();
   has_active_goal_ = false;
 }
+
 void JointTrajectoryAction::abortGoal()
 {
   // Stops the controller.

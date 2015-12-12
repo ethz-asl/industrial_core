@@ -73,6 +73,7 @@ bool JointTrajectoryInterface::init(std::string default_ip, int default_port) {
 
   return init(&default_tcp_connection_);
 }
+
 bool JointTrajectoryInterface::init(SmplMsgConnection* connection) {
   std::vector<std::string> joint_names;
   if (!getJointNames("controller_joint_names", "robot_description", joint_names))
@@ -82,6 +83,7 @@ bool JointTrajectoryInterface::init(SmplMsgConnection* connection) {
   }
   return init(connection, joint_names);
 }
+
 bool JointTrajectoryInterface::init(SmplMsgConnection* connection, 
                                     const std::vector<std::string> &joint_names, 
                                     const std::map<std::string, double> &velocity_limits) {
@@ -108,10 +110,12 @@ bool JointTrajectoryInterface::init(SmplMsgConnection* connection,
                                              &JointTrajectoryInterface::jointStateCB, this);
   return true;
 }
+
 JointTrajectoryInterface::~JointTrajectoryInterface() {  
   trajectoryStop();
   this->sub_joint_trajectory_.shutdown();
 }
+
 bool JointTrajectoryInterface::jointTrajectoryCB(industrial_msgs::CmdJointTrajectory::Request &req, 
                                                  industrial_msgs::CmdJointTrajectory::Response &res) {
   trajectory_msgs::JointTrajectoryPtr traj_ptr(new trajectory_msgs::JointTrajectory);
@@ -123,6 +127,7 @@ bool JointTrajectoryInterface::jointTrajectoryCB(industrial_msgs::CmdJointTrajec
 
   return true;  // always return true.  To distinguish between call-failed and service-unavailable.
 }
+
 void JointTrajectoryInterface::jointTrajectoryCB(const trajectory_msgs::JointTrajectoryConstPtr &msg) {
   ROS_INFO("Receiving joint trajectory message");
 
@@ -140,6 +145,7 @@ void JointTrajectoryInterface::jointTrajectoryCB(const trajectory_msgs::JointTra
   // send command messages to robot
   send_to_robot(robot_msgs);
 }
+
 bool JointTrajectoryInterface::trajectory_to_msgs(
     const trajectory_msgs::JointTrajectoryConstPtr& traj, std::vector<JointTrajPtMessage>* msgs) {
   msgs->clear();
@@ -163,6 +169,7 @@ bool JointTrajectoryInterface::trajectory_to_msgs(
   }
   return true;
 }
+
 bool JointTrajectoryInterface::select(const std::vector<std::string>& ros_joint_names, 
                                       const ros_JointTrajPt& ros_pt, 
                                       const std::vector<std::string>& rbt_joint_names, 
@@ -200,6 +207,7 @@ bool JointTrajectoryInterface::select(const std::vector<std::string>& ros_joint_
   }
   return true;
 }
+
 bool JointTrajectoryInterface::calc_speed(const trajectory_msgs::JointTrajectoryPoint& pt, 
                                           double* rbt_velocity, double* rbt_duration) {
   return calc_duration(pt, rbt_duration);
@@ -246,6 +254,7 @@ bool JointTrajectoryInterface::calc_velocity(const trajectory_msgs::JointTraject
   }
   return true;
 }
+
 bool JointTrajectoryInterface::calc_duration(const trajectory_msgs::JointTrajectoryPoint& pt, 
                                              double* rbt_duration) {
   std::vector<double> durations;
@@ -260,6 +269,7 @@ bool JointTrajectoryInterface::calc_duration(const trajectory_msgs::JointTraject
   last_time = this_time;
   return true;
 }
+
 JointTrajPtMessage JointTrajectoryInterface::create_message(int seq, std::vector<double> joint_pos, 
                                                             double velocity, double duration) {
   industrial::joint_data::JointData pos;
@@ -275,6 +285,7 @@ JointTrajPtMessage JointTrajectoryInterface::create_message(int seq, std::vector
 
   return msg;
 }
+
 void JointTrajectoryInterface::trajectoryStop() {
   JointTrajPtMessage jMsg;
   SimpleMessage msg, reply;
@@ -285,6 +296,7 @@ void JointTrajectoryInterface::trajectoryStop() {
   ROS_DEBUG("Sending stop command");
   this->connection_->sendAndReceiveMsg(msg, reply);
 }
+
 bool JointTrajectoryInterface::stopMotionCB(industrial_msgs::StopMotion::Request &req, 
                                             industrial_msgs::StopMotion::Response &res) {
   trajectoryStop();
@@ -292,6 +304,7 @@ bool JointTrajectoryInterface::stopMotionCB(industrial_msgs::StopMotion::Request
   res.code.val = industrial_msgs::ServiceReturnCode::SUCCESS;
   return true;  // always return true.  To distinguish between call-failed and service-unavailable.
 }
+
 bool JointTrajectoryInterface::is_valid(const trajectory_msgs::JointTrajectory &traj) {
   for (int i=0; i<traj.points.size(); ++i) {
     const trajectory_msgs::JointTrajectoryPoint &pt = traj.points[i];
@@ -316,6 +329,7 @@ bool JointTrajectoryInterface::is_valid(const trajectory_msgs::JointTrajectory &
   }
   return true;
 }
+
 // copy robot JointState into local cache
 void JointTrajectoryInterface::jointStateCB(const sensor_msgs::JointStateConstPtr &msg) {
   this->cur_joint_pos_ = *msg;
